@@ -3,7 +3,11 @@ public class HitRecord {
     private Vector p;
     private Vector normal;
 
-    public HitRecord() {}
+    public HitRecord() {
+        this.t = 0.0;
+        this.p = new Vector(0, 0, 0);
+        this.normal = new Vector(0, 0, 0);
+    }
 
     public HitRecord(double t, Vector p, Vector normal) {
         this.t = t;

@@ -14,6 +14,26 @@ public class RayTracer {
             return (-b - Math.sqrt(discriminant) ) / (2.0 * a);
         }
     }
+
+    public static Vector color2(Ray r, Hittable world) {
+        HitRecord rec = new HitRecord();
+
+        if (world.hit(r, 0.0, Double.MAX_VALUE-100.0, rec)) {
+            Vector normalIncrement = new Vector(rec.getNormal().getX() + 1.0, rec.getNormal().getY() + 1.0, rec.getNormal().getZ() + 1.0);
+            //System.err.println("lol " + normalIncrement);
+            Vector halvedNormal = Vector.multiplyScalar(0.5, normalIncrement);
+            return halvedNormal;
+        } else {
+            Vector unitDirection = Vector.unitVector(r.direction());
+            double t = 0.5 * (unitDirection.getY() + 1.0);
+            Vector a = new Vector(1.0, 1.0, 1.0);
+            Vector b = new Vector(0.5, 0.7, 1.0);
+            Vector first = Vector.multiplyScalar(1.0 - t, a);
+            Vector second = Vector.multiplyScalar(t, b);
+            Vector result = Vector.add(first, second);
+            return result;
+        }
+    }
     
     public static Vector color(Ray r) {
         Vector center = new Vector(0.0, 0.0, -1.0);
@@ -50,6 +70,11 @@ public class RayTracer {
         Vector vertical = new Vector(0.0, 2.0, 0.0);
         Vector origin = new Vector(0.0, 0.0, 0.0);
 
+        Hittable[] list = new Hittable[2];
+        list[0] = new Sphere(new Vector(0.0, 0.0, -1.0), 0.5);
+        list[1] = new Sphere(new Vector(0.0, -100.5, -1.0), 100.0);
+        Hittable world = new HittableList(list, 2);
+
         for (int j = ny-1; j >= 0; j--) {
             for (int i = 0; i < nx; i++) {
                 double u = (double) i / (double) nx;
@@ -60,7 +85,9 @@ public class RayTracer {
                 Vector rayDirection = Vector.add(lowerLeftCorner, horVert);
                 Ray r = new Ray(origin, rayDirection);
 
-                Vector col = color(r);                
+                Vector p = r.pointAtParameter(2.0);
+                //Vector col = color2(r, world);   
+                Vector col = color(r);
 
                 int ir = (int) (255.99 * col.getX());
                 int ig = (int) (255.99 * col.getY());
