@@ -41,31 +41,30 @@ public class RayTracer {
     public static void main(String[] args) {
         int nx = 2000;
         int ny = 1000;
+        int ns = 100;
 
         System.out.println("P3\n" + nx + " " + ny + "\n255");
-
-        Vector lowerLeftCorner = new Vector(-2.0, -1.0, -1.0);
-        Vector horizontal = new Vector(4.0, 0.0, 0.0);
-        Vector vertical = new Vector(0.0, 2.0, 0.0);
-        Vector origin = new Vector(0.0, 0.0, 0.0);
 
         Hittable[] list = new Hittable[2];
         list[0] = new Sphere(new Vector(0.0, 0.0, -1.0), 0.5);
         list[1] = new Sphere(new Vector(0.0, -100.5, -1.0), 100.0);
         Hittable world = new HittableList(list, 2);
 
+        Camera camera = new Camera();
+
         for (int j = ny-1; j >= 0; j--) {
             for (int i = 0; i < nx; i++) {
-                double u = (double) i / (double) nx;
-                double v = (double) j / (double) ny;
-                Vector uHorizontal = Vector.multiplyScalar(u, horizontal);
-                Vector vVertical = Vector.multiplyScalar(v, vertical);
-                Vector horVert = Vector.add(uHorizontal, vVertical);
-                Vector rayDirection = Vector.add(lowerLeftCorner, horVert);
-                Ray r = new Ray(origin, rayDirection);
 
-                Vector p = r.pointAtParameter(2.0);
-                Vector col = color(r, world);
+                Vector col = new Vector(0.0, 0.0, 0.0);
+
+                for (int s = 0; s < ns; s++) {
+                    double u = (double) (i + Math.random()) / (double) nx;
+                    double v = (double) (j + Math.random()) / (double) ny;
+                    Ray r = camera.getRay(u, v);
+                    col = Vector.add(col, color(r, world));
+                }
+
+                col = Vector.divideScalar(col, (double) ns);
 
                 int ir = (int) (255.99 * col.getX());
                 int ig = (int) (255.99 * col.getY());
