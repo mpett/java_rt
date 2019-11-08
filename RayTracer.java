@@ -49,12 +49,10 @@ public class RayTracer {
         list[0] = new Sphere(new Vector(0.0, 0.0, -1.0), 0.5);
         list[1] = new Sphere(new Vector(0.0, -100.5, -1.0), 100.0);
         Hittable world = new HittableList(list, 2);
-
         Camera camera = new Camera();
 
         for (int j = ny-1; j >= 0; j--) {
             for (int i = 0; i < nx; i++) {
-
                 Vector col = new Vector(0.0, 0.0, 0.0);
 
                 for (int s = 0; s < ns; s++) {
