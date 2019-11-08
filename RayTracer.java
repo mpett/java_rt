@@ -15,13 +15,16 @@ public class RayTracer {
         }
     }
 
-    public static Vector color2(Ray r, Hittable world) {
+    public static Vector color(Ray r, Hittable world) {
         HitRecord rec = new HitRecord();
+        rec = world.hit(r, 0.0, Double.MAX_VALUE-100.0, rec);
+        boolean wasHit = rec.wasHit();
 
-        if (world.hit(r, 0.0, Double.MAX_VALUE-100.0, rec)) {
-            Vector normalIncrement = new Vector(rec.getNormal().getX() + 1.0, rec.getNormal().getY() + 1.0, rec.getNormal().getZ() + 1.0);
-            //System.err.println("lol " + normalIncrement);
+        if (wasHit) {
+            Vector normalIncrement = new Vector(rec.getNormal().getX() + 1.0, 
+                        rec.getNormal().getY() + 1.0, rec.getNormal().getZ() + 1.0);
             Vector halvedNormal = Vector.multiplyScalar(0.5, normalIncrement);
+            //System.err.println("getnormal: " + rec.getNormal());
             return halvedNormal;
         } else {
             Vector unitDirection = Vector.unitVector(r.direction());
@@ -34,34 +37,10 @@ public class RayTracer {
             return result;
         }
     }
-    
-    public static Vector color(Ray r) {
-        Vector center = new Vector(0.0, 0.0, -1.0);
-        double t = hitSphere(center, 0.5, r);
-
-        if (t > 0.0) {
-            Vector d = new Vector(0.0, 0.0, -1.0);
-            Vector pointAtParameter = r.pointAtParameter(t);
-            Vector nDiff = Vector.subtract(pointAtParameter, d);
-            Vector N = Vector.unitVector(nDiff);
-            Vector incrementN = new Vector(N.getX() + 1.0, N.getY() + 1.0, N.getZ() + 1.0);
-            Vector resultingVector = Vector.multiplyScalar(0.5, incrementN);
-            return resultingVector;
-        }
-
-        Vector unitDirection = Vector.unitVector(r.direction());
-        t = 0.5 * (unitDirection.getY() + 1.0);
-        Vector firstVector = new Vector(1.0, 1.0, 1.0);
-        Vector secondVector = new Vector(0.5, 0.7, 1.0);
-        Vector multFirst = Vector.multiplyScalar(1.0 - t, firstVector);
-        Vector multSecond = Vector.multiplyScalar(t, secondVector);
-        Vector resultingVector = Vector.add(multFirst, multSecond);
-        return resultingVector;
-    }
 
     public static void main(String[] args) {
-        int nx = 200;
-        int ny = 100;
+        int nx = 2000;
+        int ny = 1000;
 
         System.out.println("P3\n" + nx + " " + ny + "\n255");
 
@@ -86,8 +65,7 @@ public class RayTracer {
                 Ray r = new Ray(origin, rayDirection);
 
                 Vector p = r.pointAtParameter(2.0);
-                //Vector col = color2(r, world);   
-                Vector col = color(r);
+                Vector col = color(r, world);
 
                 int ir = (int) (255.99 * col.getX());
                 int ig = (int) (255.99 * col.getY());
@@ -95,6 +73,7 @@ public class RayTracer {
 
                 System.out.println(ir + " " + ig + " " + ib);
             }
+            System.err.print(j + " ");
         }
     }
 }

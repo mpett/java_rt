@@ -9,12 +9,13 @@ public class Sphere extends Hittable {
         this.radius = radius;
     }
 
-    public boolean hit(Ray r, double tMin, double tMax, HitRecord rec) {
+    public HitRecord hit(Ray r, double tMin, double tMax, HitRecord rec) {
         Vector oc = Vector.subtract(r.origin(), center);
         double a = Vector.dot(r.direction(), r.direction());
         double b = Vector.dot(oc, r.direction());
         double c = Vector.dot(oc, oc) - (radius * radius);
         double discriminant = b*b - a*c;
+        //System.err.println(discriminant);
 
         if (discriminant > 0) {
             double temp = (-b - Math.sqrt(discriminant)) / a;
@@ -25,7 +26,9 @@ public class Sphere extends Hittable {
                 Vector pCenterDiff = Vector.subtract(rec.getP(), center);
                 Vector newNormal = Vector.divideScalar(pCenterDiff, radius);
                 rec.setNormal(newNormal);
-                return true;
+                //System.err.println("Första ifsatsen: " + newNormal + " " + rec.getNormal());
+                rec.setHit(true);
+                return rec;
             }
 
             temp = (-b + Math.sqrt(discriminant)) / a;
@@ -36,10 +39,11 @@ public class Sphere extends Hittable {
                 Vector pCenterDiff = Vector.subtract(rec.getP(), center);
                 Vector newNormal = Vector.divideScalar(pCenterDiff, radius);
                 rec.setNormal(newNormal);
-                return true;
+                rec.setHit(true);
+                return rec;
             }
         }
         
-        return false;
+        return rec;
     }
 }

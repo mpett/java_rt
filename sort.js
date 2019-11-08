@@ -64,8 +64,8 @@ function quicksort(a, lo, hi) {
     }
 }
 function partition(a, lo, hi) {
-    var i = lo - 1;
     var pivot = a[hi];
+    var i = lo - 1;
     for (var j = lo; j < hi; j++) {
         if (pivot > a[j]) {
             i++;
@@ -80,9 +80,9 @@ function partition(a, lo, hi) {
     return i + 1;
 }
 function main() {
-    console.log("Hello World");
     while (true) {
-        var a = [21651, 51, 54616, 5165, 1651, 65, 16, 516, 516, 516, 81981, 51651, 981, 651, 651, 0, 56651, -651, 5651, 5];
+        console.log("Hello World");
+        var a = [165165, 1651, 651, 651, 61, 651, 6516, 51, 0, 54651, -65, 1516, 6516, 16, 51651, 8];
         console.log(a);
         quicksort(a, 0, a.length - 1);
         console.log(a);
@@ -91,15 +91,15 @@ function main() {
         console.log(b);
         heapsort(b);
         console.log(b);
-        var primes = sieve(69456);
-        console.log(primes);
-        shuffle(primes);
-        console.log(primes);
-        quicksort(primes, 0, primes.length - 1);
+        var primes = sieve(211554);
         console.log(primes);
         shuffle(primes);
         console.log(primes);
         heapsort(primes);
+        console.log(primes);
+        shuffle(primes);
+        console.log(primes);
+        quicksort(primes, 0, primes.length - 1);
         console.log(primes);
     }
 }

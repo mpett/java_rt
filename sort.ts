@@ -31,7 +31,7 @@ function sieve(n:number): number[] {
             b.push(i);
         }
     }
-
+    
     return b;
 }
 
@@ -39,7 +39,7 @@ function heapsort(a:number[]): void {
     var n:number = a.length;
 
     for (let i:number = Math.floor(n/2-1); i >= 0; i--) {
-        heapify(a, n, i);    
+        heapify(a, n, i);
     }
 
     for (let i:number = n-1; i >= 0; i--) {
@@ -73,15 +73,15 @@ function heapify(a:number[], n:number, i:number): void {
 
 function quicksort(a:number[], lo:number, hi:number): void {
     if (lo < hi) {
-        let p:number = partition(a, lo, hi);
+        var p:number = partition(a, lo, hi);
         quicksort(a, p+1, hi);
         quicksort(a, lo, p-1);
     }
 }
 
 function partition(a:number[], lo:number, hi:number): number {
-    var i:number = lo - 1;
     var pivot:number = a[hi];
+    var i:number = lo - 1;
 
     for (let j:number = lo; j < hi; j++) {
         if (pivot > a[j]) {
@@ -100,15 +100,14 @@ function partition(a:number[], lo:number, hi:number): number {
 }
 
 function main(): void {
-    console.log("Hello World");
-
     while (true) {
-        var a:number[] = [21651,51,54616,5165,1651,65,16,516,516,516,81981,51651,981,651,651,0,56651,-651,5651,5];
-        console.log(a); quicksort(a, 0, a.length-1); console.log(a);
-        shuffle(a); var b:number[] = a; console.log(b); heapsort(b); console.log(b);
-        var primes:number[] = sieve(69456); console.log(primes); shuffle(primes); console.log(primes);
-        quicksort(primes, 0, primes.length-1); console.log(primes); shuffle(primes); console.log(primes);
-        heapsort(primes); console.log(primes);
+        console.log("Hello World");
+        var a:number[] = [165165,1651,651,651,61,651,6516,51,0,54651,-65,1516,6516,16,51651,8];
+        console.log(a); quicksort(a, 0, a.length-1); console.log(a); shuffle(a);
+        var b:number[] = a; console.log(b); heapsort(b); console.log(b);
+        var primes:number[] = sieve(211554); console.log(primes); shuffle(primes); console.log(primes);
+        heapsort(primes); console.log(primes); shuffle(primes); console.log(primes);
+        quicksort(primes, 0, primes.length-1); console.log(primes);
     }
 }
 
