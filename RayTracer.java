@@ -35,11 +35,13 @@ public class RayTracer {
         boolean wasHit = rec.wasHit();
 
         if (wasHit) {
-            Vector normalIncrement = new Vector(rec.getNormal().getX() + 1.0, 
-                        rec.getNormal().getY() + 1.0, rec.getNormal().getZ() + 1.0);
-            Vector halvedNormal = Vector.multiplyScalar(0.5, normalIncrement);
-            //System.err.println("getnormal: " + rec.getNormal());
-            return halvedNormal;
+            Vector recP = rec.getP();
+            Vector recNormal = rec.getNormal();
+            Vector first = Vector.add(recP, recNormal);
+            Vector target = Vector.add(first, randomInUnitSphere());
+            Vector targetRecPDiff = Vector.subtract(target, recP);
+            Ray ray = new Ray(recP, targetRecPDiff);
+            return Vector.multiplyScalar(0.5, color(ray, world));
         } else {
             Vector unitDirection = Vector.unitVector(r.direction());
             double t = 0.5 * (unitDirection.getY() + 1.0);
@@ -53,8 +55,8 @@ public class RayTracer {
     }
 
     public static void main(String[] args) {
-        int nx = 200;
-        int ny = 100;
+        int nx = 2000;
+        int ny = 1000;
         int ns = 100;
 
         System.out.println("P3\n" + nx + " " + ny + "\n255");
