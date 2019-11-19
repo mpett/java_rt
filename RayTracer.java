@@ -15,9 +15,23 @@ public class RayTracer {
         }
     }
 
+    public static Vector randomInUnitSphere() {
+        Vector p = new Vector(0, 0, 0);
+
+        do {
+            Vector randomVector = new Vector(Math.random(), Math.random(), Math.random());
+            Vector firstVector = Vector.multiplyScalar(2.0, randomVector);
+            Vector secondVector = new Vector(1, 1, 1);
+            Vector diff = Vector.subtract(firstVector, secondVector);
+            p = diff;
+        } while (p.squaredLength() >= 1.0);
+
+        return p;
+    }
+
     public static Vector color(Ray r, Hittable world) {
         HitRecord rec = new HitRecord();
-        rec = world.hit(r, 0.0, Double.MAX_VALUE-100.0, rec);
+        rec = world.hit(r, 0.0, Double.MAX_VALUE, rec);
         boolean wasHit = rec.wasHit();
 
         if (wasHit) {
@@ -39,8 +53,8 @@ public class RayTracer {
     }
 
     public static void main(String[] args) {
-        int nx = 2000;
-        int ny = 1000;
+        int nx = 200;
+        int ny = 100;
         int ns = 100;
 
         System.out.println("P3\n" + nx + " " + ny + "\n255");
