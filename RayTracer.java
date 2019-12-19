@@ -79,6 +79,8 @@ public class RayTracer {
                 }
 
                 col = Vector.divideScalar(col, (double) ns);
+                Vector tmpCol = new Vector(Math.sqrt(col.getX()), Math.sqrt(col.getY()), Math.sqrt(col.getZ()));
+                col = tmpCol;
 
                 int ir = (int) (255.99 * col.getX());
                 int ig = (int) (255.99 * col.getY());
