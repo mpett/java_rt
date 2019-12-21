@@ -29,7 +29,7 @@ public class RayTracer {
         return p;
     }
 
-    public static Vector color2(Ray r, Hittable world, int depth) {
+    public static Vector color(Ray r, Hittable world, int depth) {
         HitRecord rec = new HitRecord();
         rec = world.hit(r, 0.001, Double.MAX_VALUE, rec);
         boolean wasHit = rec.wasHit();
@@ -45,7 +45,7 @@ public class RayTracer {
             if (depth < 50 && wasScattered) {
                 attenuation = rec.getAttenuation();
                 scattered = rec.getScattered();
-                returnVector = Vector.multiply(attenuation, color2(scattered, world, depth+1));
+                returnVector = Vector.multiply(attenuation, color(scattered, world, depth+1));
             } else {
                 returnVector = new Vector(0, 0, 0);
             }
@@ -63,35 +63,10 @@ public class RayTracer {
         return returnVector;
     }
 
-    public static Vector color(Ray r, Hittable world) {
-        HitRecord rec = new HitRecord();
-        rec = world.hit(r, 0.001, Double.MAX_VALUE, rec);
-        boolean wasHit = rec.wasHit();
-
-        if (wasHit) {
-            Vector recP = rec.getP();
-            Vector recNormal = rec.getNormal();
-            Vector first = Vector.add(recP, recNormal);
-            Vector target = Vector.add(first, randomInUnitSphere());
-            Vector targetRecPDiff = Vector.subtract(target, recP);
-            Ray ray = new Ray(recP, targetRecPDiff);
-            return Vector.multiplyScalar(0.5, color(ray, world));
-        } else {
-            Vector unitDirection = Vector.unitVector(r.direction());
-            double t = 0.5 * (unitDirection.getY() + 1.0);
-            Vector a = new Vector(1.0, 1.0, 1.0);
-            Vector b = new Vector(0.5, 0.7, 1.0);
-            Vector first = Vector.multiplyScalar(1.0 - t, a);
-            Vector second = Vector.multiplyScalar(t, b);
-            Vector result = Vector.add(first, second);
-            return result;
-        }
-    }
-
     public static void main(String[] args) {
-        int nx = 200;
-        int ny = 100;
-        int ns = 100;
+        int nx = 1000;
+        int ny = 500;
+        int ns = 50;
 
         System.out.println("P3\n" + nx + " " + ny + "\n255");
 
@@ -111,7 +86,7 @@ public class RayTracer {
                     double u = (double) (i + Math.random()) / (double) nx;
                     double v = (double) (j + Math.random()) / (double) ny;
                     Ray r = camera.getRay(u, v);
-                    col = Vector.add(col, color2(r, world, 0));
+                    col = Vector.add(col, color(r, world, 0));
                 }
 
                 col = Vector.divideScalar(col, (double) ns);
