@@ -29,9 +29,43 @@ public class RayTracer {
         return p;
     }
 
+    public static Vector color2(Ray r, Hittable world, int depth) {
+        HitRecord rec = new HitRecord();
+        rec = world.hit(r, 0.001, Double.MAX_VALUE, rec);
+        boolean wasHit = rec.wasHit();
+        Vector returnVector = null;
+
+        if (wasHit) {
+            Vector a = new Vector(0, 0, 0);
+            Vector b = new Vector(0, 0, 0);
+            Ray scattered = new Ray(a, b);
+            Vector attenuation = new Vector(0, 0, 0);
+            rec = rec.getMaterial().scatter(r, rec, attenuation, scattered);
+            boolean wasScattered = rec.wasHit();
+            if (depth < 50 && wasScattered) {
+                attenuation = rec.getAttenuation();
+                scattered = rec.getScattered();
+                returnVector = Vector.multiply(attenuation, color2(scattered, world, depth+1));
+            } else {
+                returnVector = new Vector(0, 0, 0);
+            }
+        } else {
+            Vector unitDirection = Vector.unitVector(r.direction());
+            double t = 0.5 * (unitDirection.getY() + 1.0);
+            Vector a = new Vector(1.0, 1.0, 1.0);
+            Vector b = new Vector(0.5, 0.7, 1.0);
+            Vector first = Vector.multiplyScalar(1.0 - t, a);
+            Vector second = Vector.multiplyScalar(t, b);
+            Vector result = Vector.add(first, second);
+            returnVector = result;
+        }
+
+        return returnVector;
+    }
+
     public static Vector color(Ray r, Hittable world) {
         HitRecord rec = new HitRecord();
-        rec = world.hit(r, 0.0, Double.MAX_VALUE, rec);
+        rec = world.hit(r, 0.001, Double.MAX_VALUE, rec);
         boolean wasHit = rec.wasHit();
 
         if (wasHit) {
@@ -55,16 +89,18 @@ public class RayTracer {
     }
 
     public static void main(String[] args) {
-        int nx = 2000;
-        int ny = 1000;
+        int nx = 200;
+        int ny = 100;
         int ns = 100;
 
         System.out.println("P3\n" + nx + " " + ny + "\n255");
 
-        Hittable[] list = new Hittable[2];
-        list[0] = new Sphere(new Vector(0.0, 0.0, -1.0), 0.5);
-        list[1] = new Sphere(new Vector(0.0, -100.5, -1.0), 100.0);
-        Hittable world = new HittableList(list, 2);
+        Hittable[] list = new Hittable[4];
+        list[0] = new Sphere(new Vector(0.0, 0.0, -1.0), 0.5, new Lambertian(new Vector(0.8, 0.3, 0.3)));
+        list[1] = new Sphere(new Vector(0.0, -100.5, -1.0), 100.0, new Lambertian(new Vector(0.8, 0.8, 0.0)));
+        list[2] = new Sphere(new Vector(1, 0, -1), 0.5, new Metal(new Vector(0.8, 0.6, 0.2)));
+        list[3] = new Sphere(new Vector(-1, 0, -1), 0.5, new Metal(new Vector(0.8, 0.8, 0.8)));
+        Hittable world = new HittableList(list, 4);
         Camera camera = new Camera();
 
         for (int j = ny-1; j >= 0; j--) {
@@ -75,11 +111,12 @@ public class RayTracer {
                     double u = (double) (i + Math.random()) / (double) nx;
                     double v = (double) (j + Math.random()) / (double) ny;
                     Ray r = camera.getRay(u, v);
-                    col = Vector.add(col, color(r, world));
+                    col = Vector.add(col, color2(r, world, 0));
                 }
 
                 col = Vector.divideScalar(col, (double) ns);
-                Vector tmpCol = new Vector(Math.sqrt(col.getX()), Math.sqrt(col.getY()), Math.sqrt(col.getZ()));
+                Vector tmpCol = new Vector(Math.sqrt(col.getX()), 
+                        Math.sqrt(col.getY()), Math.sqrt(col.getZ()));
                 col = tmpCol;
 
                 int ir = (int) (255.99 * col.getX());

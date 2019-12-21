@@ -3,6 +3,9 @@ public class HitRecord {
     private Vector p;
     private Vector normal;
     private boolean wasHitByRay;
+    private Material material;
+    private Vector attenuation;
+    private Ray scattered;
 
     public HitRecord() {
         this.t = 0.0;
@@ -48,5 +51,29 @@ public class HitRecord {
 
     public void setHit(boolean condition) {
         this.wasHitByRay = condition;
+    }
+
+    public void setMaterial(Material material) {
+        this.material = material;
+    }
+
+    public Material getMaterial() {
+        return this.material;
+    }
+
+    public void setAttenuation(Vector attenuation) {
+        this.attenuation = attenuation;
+    }
+
+    public Vector getAttenuation() {
+        return this.attenuation;
+    }
+
+    public void setScattered(Ray scattered) {
+        this.scattered = scattered;
+    }
+
+    public Ray getScattered() {
+        return this.scattered;
     }
 }

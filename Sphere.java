@@ -1,12 +1,19 @@
 public class Sphere extends Hittable {
     private Vector center;
     private double radius;
+    Material material;
     
     public Sphere() {}
 
     public Sphere(Vector center, double radius) {
         this.center = center;
         this.radius = radius;
+    }
+
+    public Sphere(Vector center, double radius, Material material) {
+        this.center = center;
+        this.radius = radius;
+        this.material = material;
     }
 
     public HitRecord hit(Ray r, double tMin, double tMax, HitRecord rec) {
@@ -28,6 +35,7 @@ public class Sphere extends Hittable {
                 rec.setNormal(newNormal);
                 //System.err.println("Första ifsatsen: " + newNormal + " " + rec.getNormal());
                 rec.setHit(true);
+                rec.setMaterial(this.material);
                 return rec;
             }
 
@@ -40,6 +48,7 @@ public class Sphere extends Hittable {
                 Vector newNormal = Vector.divideScalar(pCenterDiff, radius);
                 rec.setNormal(newNormal);
                 rec.setHit(true);
+                rec.setMaterial(this.material);
                 return rec;
             }
         }
