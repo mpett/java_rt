@@ -9,7 +9,6 @@ public class Metal extends Material {
         } else {
             this.fuzz = 1.0;
         }
-        
     }
 
     public static Vector randomInUnitSphere() {

@@ -1,10 +1,15 @@
 public class HitRecord {
-    private double t;
     private Vector p;
     private Vector normal;
-    private boolean wasHitByRay;
-    private Material material;
     private Vector attenuation;
+    private Vector refracted;
+    
+    private double t;
+    private Material material;
+
+    private boolean wasHitByRay;
+    private boolean wasRefracted;
+    
     private Ray scattered;
 
     public HitRecord() {
@@ -75,5 +80,21 @@ public class HitRecord {
 
     public Ray getScattered() {
         return this.scattered;
+    }
+
+    public void setWasRefracted(boolean wasRefracted) {
+        this.wasRefracted = wasRefracted;
+    }
+
+    public boolean wasRefracted() {
+        return this.wasRefracted;
+    }
+
+    public void setRefracted(Vector refracted) {
+        this.refracted = refracted;
+    }
+
+    public Vector getRefracted() {
+        return this.refracted;
     }
 }

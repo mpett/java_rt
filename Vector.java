@@ -81,6 +81,24 @@ public class Vector {
         return result;
     }
 
+    public static void refract(Vector v, Vector n, double niOverNt, HitRecord rec) {
+        Vector uv = unitVector(v); 
+        double dt = dot(uv, n);
+        double discriminant = 1.0 - niOverNt * niOverNt * ( 1.0 - dt * dt );
+        
+        if (discriminant > 0) {
+            Vector nDt = Vector.multiplyScalar(n, dt);
+            Vector uvSubNDt = Vector.subtract(uv, nDt);
+            Vector firstVector = Vector.multiplyScalar(niOverNt, uvSubNDt);
+            Vector secondVector = Vector.multiplyScalar(n, Math.sqrt(discriminant));
+            Vector refracted = Vector.subtract(firstVector, secondVector);
+            rec.setRefracted(refracted);
+            rec.setWasRefracted(true);
+        } else {
+            rec.setWasRefracted(false);
+        }
+    }
+
     public Vector add(Vector v) {
         this.x += v.getX();
         this.y += v.getY();
