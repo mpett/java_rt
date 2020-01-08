@@ -60,6 +60,11 @@ public class Vector {
         return new Vector(v.getX() / t, v.getY() / t, v.getZ() / t);
     }
 
+    public Vector negate() {
+        Vector returnVector = new Vector(-this.x, -this.y, -this.z);
+        return returnVector;
+    }
+
     public static double dot(Vector v1, Vector v2) {
         return v1.getX() * v2.getX()
                 + v1.getY() * v2.getY()
@@ -81,7 +86,7 @@ public class Vector {
         return result;
     }
 
-    public static void refract(Vector v, Vector n, double niOverNt, HitRecord rec) {
+    public static HitRecord refract(Vector v, Vector n, double niOverNt, HitRecord rec) {
         Vector uv = unitVector(v); 
         double dt = dot(uv, n);
         double discriminant = 1.0 - niOverNt * niOverNt * ( 1.0 - dt * dt );
@@ -97,6 +102,8 @@ public class Vector {
         } else {
             rec.setWasRefracted(false);
         }
+
+        return rec;
     }
 
     public Vector add(Vector v) {
