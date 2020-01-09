@@ -70,12 +70,13 @@ public class RayTracer {
 
         System.out.println("P3\n" + nx + " " + ny + "\n255");
 
-        Hittable[] list = new Hittable[4];
-        list[0] = new Sphere(new Vector(0.0, 0.0, -1.0), 0.5, new Lambertian(new Vector(0.8, 0.3, 0.3)));
+        Hittable[] list = new Hittable[5];
+        list[0] = new Sphere(new Vector(0.0, 0.0, -1.0), 0.5, new Lambertian(new Vector(0.1, 0.2, 0.5)));
         list[1] = new Sphere(new Vector(0.0, -100.5, -1.0), 100.0, new Lambertian(new Vector(0.8, 0.8, 0.0)));
-        list[2] = new Sphere(new Vector(1, 0, -1), 0.5, new Metal(new Vector(0.8, 0.6, 0.2), 1.0));
+        list[2] = new Sphere(new Vector(1, 0, -1), 0.5, new Metal(new Vector(0.8, 0.6, 0.2), 0.0));
         list[3] = new Sphere(new Vector(-1, 0, -1), 0.5, new Dielectric(1.5));
-        Hittable world = new HittableList(list, 4);
+        list[4] = new Sphere(new Vector(-1, 0, -1), -0.45, new Dielectric(1.5));
+        Hittable world = new HittableList(list, 5);
         Camera camera = new Camera();
 
         for (int j = ny-1; j >= 0; j--) {
