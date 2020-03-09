@@ -23,4 +23,8 @@ public class Ray {
         Vector resultingVector = Vector.add(firstVector, secondVector);
         return resultingVector;
     }
+
+    public String toString() {
+        return "A: " + A + " B: " + B;
+    }
 }

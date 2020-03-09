@@ -77,7 +77,9 @@ public class RayTracer {
         list[3] = new Sphere(new Vector(-1, 0, -1), 0.5, new Dielectric(1.5));
         list[4] = new Sphere(new Vector(-1, 0, -1), -0.45, new Dielectric(1.5));
         Hittable world = new HittableList(list, 5);
-        Camera camera = new Camera();
+        Camera camera = new Camera(90, (double) nx / (double) ny);
+        //Camera camera = new Camera(new Vector(-2, 2, 1), new Vector(0, 0, -1), 
+          //                      new Vector(0, 1, 0), 90, (double) nx / (double) ny);
 
         for (int j = ny-1; j >= 0; j--) {
             for (int i = 0; i < nx; i++) {
