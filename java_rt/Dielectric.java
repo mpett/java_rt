@@ -1,3 +1,5 @@
+package java_rt;
+
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Dielectric extends Material {

@@ -1,3 +1,5 @@
+package java_rt;
+
 public class Ray {
     private Vector A;
     private Vector B;

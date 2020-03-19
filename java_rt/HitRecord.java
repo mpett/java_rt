@@ -1,3 +1,5 @@
+package java_rt;
+
 public class HitRecord {
     private Vector p;
     private Vector normal;

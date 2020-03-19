@@ -1,3 +1,5 @@
+package java_rt;
+
 public class Lambertian extends Material {
     Vector albedo;
 

@@ -1,3 +1,5 @@
+package java_rt;
+
 public class RayTracer {
     public static double hitSphere(Vector center, double radius, Ray r) {
         Vector rayOrigin = r.origin();

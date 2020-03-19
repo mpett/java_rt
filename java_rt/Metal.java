@@ -1,3 +1,5 @@
+package java_rt;
+
 public class Metal extends Material {
     Vector albedo;
     double fuzz;

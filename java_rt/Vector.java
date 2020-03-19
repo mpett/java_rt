@@ -1,3 +1,5 @@
+package java_rt;
+
 public class Vector {
     private double x;
     private double y;

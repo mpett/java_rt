@@ -1,3 +1,5 @@
+package java_rt;
+
 public class Sphere extends Hittable {
     private Vector center;
     private double radius;

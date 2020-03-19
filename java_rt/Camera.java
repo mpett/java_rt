@@ -1,3 +1,5 @@
+package java_rt;
+
 public class Camera {
     private Vector origin;
     private Vector lowerLeftCorner;
