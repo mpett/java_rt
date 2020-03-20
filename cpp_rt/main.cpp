@@ -203,6 +203,21 @@ class ray {
         vec3 B;
 };
 
+// Begin Hit Record
+
+struct hit_record {
+    float t;
+    vec3 p;
+    vec3 normal;
+};
+
+// Begin Hittable
+
+class hittable {
+    public:
+        virtual bool hit(const ray& r, float t_min, hit_record& rec) const = 0;
+};
+
 // Begin Main
 
 float hit_sphere(const vec3& center, float radius, const ray& r) {
