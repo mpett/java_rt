@@ -257,6 +257,23 @@ bool sphere::hit(const ray& r, float t_min, float t_max, hit_record& rec) const 
     return false;
 }
 
+// Begin Hittable List
+
+class hittable_list : hittable {
+    public:
+        hittable_list() {}
+        
+        hittable_list(hittable **l, int n) {
+            list = l;
+            list_size = n;
+        }
+
+        virtual bool hit(const ray& r, float t_min, float t_max, hit_record& rec) const;
+
+        hittable **list;
+        int list_size;
+};
+
 // Begin Main
 
 float hit_sphere(const vec3& center, float radius, const ray& r) {
