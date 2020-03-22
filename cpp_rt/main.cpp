@@ -309,6 +309,27 @@ inline double random_double() {
     return rand_generator();
 }
 
+// Begin Camera
+
+class camera {
+    public:
+        camera() {
+            lower_left_corner = vec3(-2.0, -1.0, -1.0);
+            horizontal = vec3(4.0, 0.0, 0.0);
+            vertical = vec3(0.0, 2.0, 0.0);
+            origin = vec3(0.0, 0.0, 0.0);
+        }
+
+        ray get_ray(float u, float v) {
+            return ray(origin, lower_left_corner + u*horizontal - v*vertical - origin);
+        }
+
+        vec3 origin;
+        vec3 lower_left_corner;
+        vec3 horizontal;
+        vec3 vertical;
+};
+
 // Begin Main
 
 float hit_sphere(const vec3& center, float radius, const ray& r) {
@@ -366,6 +387,8 @@ int main()
     list[1] = new sphere(vec3(0, - 100.5, -1), 100);
     hittable *world = new hittable_list(list, 2);
 
+    std::cerr << "STATUS: ";
+
     for (int j = ny-1; j >= 0; j--) {
         for (int i = 0; i < nx; i++) {
             float u = float(i) / float(nx);
@@ -382,6 +405,7 @@ int main()
             int ib = int(255.99 * col[2]);
             std::cout << ir << " " << ig << " " << ib << "\n";
         }
+        std::cerr << j << " ";
     }
     
     return 0;
