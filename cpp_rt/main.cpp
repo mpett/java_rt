@@ -321,7 +321,7 @@ class camera {
         }
 
         ray get_ray(float u, float v) {
-            return ray(origin, lower_left_corner + u*horizontal - v*vertical - origin);
+            return ray(origin, lower_left_corner + u*horizontal + v*vertical - origin);
         }
 
         vec3 origin;
@@ -374,6 +374,7 @@ int main()
 {
     int nx = 2000;
     int ny = 1000;
+    int ns = 100;
 
     std::cout << "P3\n" << nx << " " << ny << "\n255\n";
 
@@ -387,18 +388,21 @@ int main()
     list[1] = new sphere(vec3(0, - 100.5, -1), 100);
     hittable *world = new hittable_list(list, 2);
 
+    camera cam;
+
     std::cerr << "STATUS: ";
 
     for (int j = ny-1; j >= 0; j--) {
         for (int i = 0; i < nx; i++) {
-            float u = float(i) / float(nx);
-            float v = float(j) / float(ny);
-            ray r(origin, lower_left_corner + u*horizontal + v*vertical);
+            vec3 col = vec3(0.0, 0.0, 0.0);
+            for (int s = 0; s < ns; s++) {
+                float u = float(i + random_double()) / float(nx);
+                float v = float(j + random_double()) / float(ny);
+                ray r = cam.get_ray(u, v);
+                col += color(r, world);
+            }
 
-            vec3 p = r.point_at_parameter(2.0);
-            vec3 col = color(r, world);
-            
-            //vec3 col = color(r);
+            col /= float(ns);
 
             int ir = int(255.99 * col[0]);
             int ig = int(255.99 * col[1]);
