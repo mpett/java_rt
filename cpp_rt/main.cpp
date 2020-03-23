@@ -336,7 +336,7 @@ vec3 random_in_unit_sphere() {
     vec3 p;
 
     do {
-        p = 2.0 * vec3(random_double(), random_double(), random_double()) - vec3(1, 1, 1);
+        p = 2.0 * vec3(random_double_cstd(), random_double_cstd(), random_double_cstd()) - vec3(1, 1, 1);
     } while (p.squared_length() >= 1.0);
 
     return p;
@@ -358,7 +358,7 @@ float hit_sphere(const vec3& center, float radius, const ray& r) {
 
 vec3 color(const ray& r, hittable *world) {
     hit_record rec;
-    if (world->hit(r, 0.0, MAXFLOAT, rec)) {
+    if (world->hit(r, 0.001, MAXFLOAT, rec)) {
         vec3 target = rec.p + rec.normal + random_in_unit_sphere();
         return 0.5 * color(ray(rec.p, target - rec.p), world);
     } else {
@@ -383,9 +383,9 @@ vec3 color(const ray& r) {
 
 int main()
 {
-    int nx = 200;
-    int ny = 100;
-    int ns = 100;
+    int nx = 2000;
+    int ny = 1000;
+    int ns = 10;
 
     std::cout << "P3\n" << nx << " " << ny << "\n255\n";
 
@@ -407,8 +407,8 @@ int main()
         for (int i = 0; i < nx; i++) {
             vec3 col = vec3(0.0, 0.0, 0.0);
             for (int s = 0; s < ns; s++) {
-                float u = float(i + random_double()) / float(nx);
-                float v = float(j + random_double()) / float(ny);
+                float u = float(i + random_double_cstd()) / float(nx);
+                float v = float(j + random_double_cstd()) / float(ny);
                 ray r = cam.get_ray(u, v);
                 col += color(r, world);
             }
