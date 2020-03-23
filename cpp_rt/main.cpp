@@ -210,10 +210,13 @@ class ray {
 
 // Begin Hit Record
 
+class material;
+
 struct hit_record {
     float t;
     vec3 p;
     vec3 normal;
+    material *mat_ptr;
 };
 
 // Begin Hittable
@@ -221,6 +224,14 @@ struct hit_record {
 class hittable {
     public:
         virtual bool hit(const ray& r, float t_min, float t_max, hit_record& rec) const = 0;
+};
+
+// Begin Material
+
+class material {
+    public:
+        virtual bool scatter(const ray& r_in, const hit_record& rec, 
+                            vec3& attenuation, ray& scattered) const = 0;
 };
 
 // Begin Sphere
@@ -232,6 +243,7 @@ class sphere : public hittable {
         virtual bool hit(const ray& r, float tmin, float tmax, hit_record& rec) const;
         vec3 center;
         float radius;
+        material *mat_ptr;
 };
 
 bool sphere::hit(const ray& r, float t_min, float t_max, hit_record& rec) const {
@@ -247,6 +259,7 @@ bool sphere::hit(const ray& r, float t_min, float t_max, hit_record& rec) const 
             rec.t = temp;
             rec.p = r.point_at_parameter(rec.t);
             rec.normal = (rec.p - center) / radius;
+            rec.mat_ptr = mat_ptr;
             return true;
         }
 
@@ -256,6 +269,7 @@ bool sphere::hit(const ray& r, float t_min, float t_max, hit_record& rec) const 
             rec.t = temp;
             rec.p = r.point_at_parameter(rec.t);
             rec.normal = (rec.p - center) / radius;
+            rec.mat_ptr = mat_ptr;
             return true;
         }
     }
@@ -385,7 +399,7 @@ int main()
 {
     int nx = 2000;
     int ny = 1000;
-    int ns = 10;
+    int ns = 100;
 
     std::cout << "P3\n" << nx << " " << ny << "\n255\n";
 
