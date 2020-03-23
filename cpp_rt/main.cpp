@@ -181,6 +181,30 @@ inline vec3 unit_vector(vec3 v) {
     return v / v.length();
 }
 
+// Begin Random Double
+
+inline double random_double_cstd() {
+    return rand() / (RAND_MAX + 1.0);
+}
+
+inline double random_double() {
+    static std::uniform_real_distribution<double> distribution(0.0, 1.0);
+    static std::mt19937 generator;
+    static std::function<double()> rand_generator =
+        std::bind(distribution, generator);
+    return rand_generator();
+}
+
+vec3 random_in_unit_sphere() {
+    vec3 p;
+
+    do {
+        p = 2.0 * vec3(random_double(), random_double(), random_double()) - vec3(1, 1, 1);
+    } while (p.squared_length() >= 1.0);
+
+    return p;
+}
+
 // Begin Ray
 
 class ray {
@@ -232,6 +256,23 @@ class material {
     public:
         virtual bool scatter(const ray& r_in, const hit_record& rec, 
                             vec3& attenuation, ray& scattered) const = 0;
+};
+
+// Begin Lambertian
+
+class lambertian : public material {
+    public:
+        lambertian(const vec3& a) : albedo(a) {}
+
+        virtual bool scatter(const ray& r_in, const hit_record& rec, 
+                                vec3& attenuation, ray& scattered) const {
+            vec3 target = rec.p + rec.normal + random_in_unit_sphere();
+            scattered = ray(rec.p, target - rec.p);
+            attenuation = albedo;
+            return true;
+        }
+
+        vec3 albedo;
 };
 
 // Begin Sphere
@@ -309,20 +350,6 @@ bool hittable_list::hit(const ray& r, float t_min, float t_max, hit_record& rec)
     return hit_anything;
 }
 
-// Begin Random Double
-
-inline double random_double_cstd() {
-    return rand() / (RAND_MAX + 1.0);
-}
-
-inline double random_double() {
-    static std::uniform_real_distribution<double> distribution(0.0, 1.0);
-    static std::mt19937 generator;
-    static std::function<double()> rand_generator =
-        std::bind(distribution, generator);
-    return rand_generator();
-}
-
 // Begin Camera
 
 class camera {
@@ -345,16 +372,6 @@ class camera {
 };
 
 // Begin Main
-
-vec3 random_in_unit_sphere() {
-    vec3 p;
-
-    do {
-        p = 2.0 * vec3(random_double_cstd(), random_double_cstd(), random_double_cstd()) - vec3(1, 1, 1);
-    } while (p.squared_length() >= 1.0);
-
-    return p;
-}
 
 float hit_sphere(const vec3& center, float radius, const ray& r) {
     vec3 oc = r.origin() - center;
@@ -399,7 +416,7 @@ int main()
 {
     int nx = 2000;
     int ny = 1000;
-    int ns = 100;
+    int ns = 10;
 
     std::cout << "P3\n" << nx << " " << ny << "\n255\n";
 
@@ -421,8 +438,8 @@ int main()
         for (int i = 0; i < nx; i++) {
             vec3 col = vec3(0.0, 0.0, 0.0);
             for (int s = 0; s < ns; s++) {
-                float u = float(i + random_double_cstd()) / float(nx);
-                float v = float(j + random_double_cstd()) / float(ny);
+                float u = float(i + random_double()) / float(nx);
+                float v = float(j + random_double()) / float(ny);
                 ray r = cam.get_ray(u, v);
                 col += color(r, world);
             }
