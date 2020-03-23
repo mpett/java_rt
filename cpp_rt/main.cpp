@@ -332,6 +332,16 @@ class camera {
 
 // Begin Main
 
+vec3 random_in_unit_sphere() {
+    vec3 p;
+
+    do {
+        p = 2.0 * vec3(random_double(), random_double(), random_double()) - vec3(1, 1, 1);
+    } while (p.squared_length() >= 1.0);
+
+    return p;
+}
+
 float hit_sphere(const vec3& center, float radius, const ray& r) {
     vec3 oc = r.origin() - center;
     float a = dot(r.direction(), r.direction());
@@ -349,7 +359,8 @@ float hit_sphere(const vec3& center, float radius, const ray& r) {
 vec3 color(const ray& r, hittable *world) {
     hit_record rec;
     if (world->hit(r, 0.0, MAXFLOAT, rec)) {
-        return 0.5 * vec3(rec.normal.x() + 1, rec.normal.y() + 1, rec.normal.z() + 1);
+        vec3 target = rec.p + rec.normal + random_in_unit_sphere();
+        return 0.5 * color(ray(rec.p, target - rec.p), world);
     } else {
         vec3 unit_direction = unit_vector(r.direction());
         float t = 0.5 * (unit_direction.y() + 1.0);
@@ -372,8 +383,8 @@ vec3 color(const ray& r) {
 
 int main()
 {
-    int nx = 2000;
-    int ny = 1000;
+    int nx = 200;
+    int ny = 100;
     int ns = 100;
 
     std::cout << "P3\n" << nx << " " << ny << "\n255\n";
