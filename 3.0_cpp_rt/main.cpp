@@ -59,7 +59,7 @@ class vec3 {
             return e[0] * e[0] + e[1] * e[1] + e[2] * e[2];
         }
 
-        void write_color(std::ostream out) {
+        void write_color(std::ostream& out) {
             out << static_cast<int>(255.99 * e[0]) << " "
             << static_cast<int>(255.99 * e[1]) << " "
             << static_cast<int>(255.99 * e[2]) << "\n";
@@ -149,13 +149,8 @@ int main() {
     for (int j = image_height - 1; j >= 0; --j) {
         std::cerr << j << " " << std::flush;
         for (int i = 0; i < image_width; ++i) {
-            auto r = double(i) / image_width;
-            auto g = double(j) / image_height;
-            auto b = 0.2;
-            int ir = static_cast<int>(255.99 * r);
-            int ig = static_cast<int>(255.99 * g);
-            int ib = static_cast<int>(255.99 * b);
-            std::cout << ir << " " << ig << " " << ib << "\n";
+            vec3 color(double(i) / image_width, double(j) / image_height, 0.2);
+            color.write_color(std::cout);
         }
     }
 
