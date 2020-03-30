@@ -149,6 +149,18 @@ class hittable {
         virtual bool hit(const ray& r, double t_min, double t_max, hit_record& rec) const = 0;
 };
 
+// Begin Sphere
+
+class sphere : public hittable {
+    public:
+        sphere() {}
+        sphere(vec3 cen, double r) : center(cen), radius(r) {};
+    
+    public:
+        vec3 center;
+        double radius;
+};
+
 // Begin Main
 
 double hit_sphere(const vec3& center, double radius, const ray& r) {
