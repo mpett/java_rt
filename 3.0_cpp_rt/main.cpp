@@ -5,6 +5,8 @@
 #include <cmath>
 #include <cstdlib>
 #include <limits>
+#include <functional>
+#include <random>
 
 // Usings
 
@@ -138,6 +140,23 @@ inline vec3 cross(const vec3& u, const vec3& v) {
 
 inline vec3 unit_vector(vec3 v) {
     return v / v.length();
+}
+
+// Begin Random Double
+
+inline double random_double() {
+    return rand() / (RAND_MAX + 1.0);
+}
+
+inline double random_double(double min, double max) {
+    return min + (max - min) * random_double();
+}
+
+inline double alt_random_double() {
+    static std::uniform_real_distribution<double> distribution(0.0, 1.0);
+    static std::mt19937 generator;
+    static std::function<double()> rand_generator = std::bind(distribution, generator);
+    return rand_generator();
 }
 
 // Begin Ray
