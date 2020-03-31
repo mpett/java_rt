@@ -143,6 +143,12 @@ struct hit_record {
     vec3 p;
     vec3 normal;
     double t;
+    bool front_face;
+
+    inline void set_face_normal(const ray& r, const vec3& outward_normal) {
+        front_face = dot(r.direction(), outward_normal) < 0;
+        normal = front_face ? outward_normal : -outward_normal;
+    }
 };
 
 class hittable {
@@ -178,7 +184,8 @@ bool sphere::hit(const ray& r, double t_min, double t_max, hit_record& rec) cons
         if (temp < t_max && temp > t_min) {
             rec.t = temp;
             rec.p = r.at(rec.t);
-            rec.normal = (rec.p - center) / radius;
+            vec3 outward_normal = (rec.p - center) / radius;
+            rec.set_face_normal(r, outward_normal);
             return true;
         }
 
@@ -187,7 +194,8 @@ bool sphere::hit(const ray& r, double t_min, double t_max, hit_record& rec) cons
         if (temp < t_max && temp > t_min) {
             rec.t = temp;
             rec.p = r.at(rec.t);
-            rec.normal = (rec.p - center) / radius;
+            vec3 outward_normal = (rec.p - center) / radius;
+            rec.set_face_normal(r, outward_normal);
             return true;
         }
     }
