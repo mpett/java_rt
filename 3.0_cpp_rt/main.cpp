@@ -296,6 +296,18 @@ vec3 ray_color(const ray& r) {
     return (1.0 - t) * vec3(1.0, 1.0, 1.0) + t * vec3(0.5, 0.7, 1.0);
 }
 
+vec3 ray_color(const ray& r, const hittable& world) {
+    hit_record rec;
+
+    if (world.hit(r, 0, infinity, rec)) {
+        return 0.5 * (rec.normal + vec3(1, 1, 1));
+    }
+
+    vec3 unit_direction = unit_vector(r.direction());
+    auto t = 0.5 * (unit_direction.y() + 1.0);
+    return (1.0 - t) * vec3(1.0, 1.0, 1.0) + t * vec3(0.5, 0.7, 1.0);
+}
+
 int main() {
     const int image_width = 2000;
     const int image_height = 1000;
@@ -307,6 +319,10 @@ int main() {
     vec3 vertical(0.0, 2.0, 0.0);
     vec3 origin(0.0, 0.0, 0.0);
 
+    hittable_list world;
+    world.add(make_shared<sphere>(vec3(0, 0, -1), 0.5));
+    world.add(make_shared<sphere>(vec3(0, -100.5, -1), 100));
+
     std::cerr << "Scanlines remaining: ";
 
     for (int j = image_height - 1; j >= 0; --j) {
@@ -315,7 +331,7 @@ int main() {
             auto u = double(i) / image_width;
             auto v = double(j) / image_height;
             ray r(origin, lower_left_corner + u*horizontal + v*vertical);
-            vec3 color = ray_color(r);
+            vec3 color = ray_color(r, world);
             color.write_color(std::cout);
         }
     }
