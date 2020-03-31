@@ -32,6 +32,18 @@ inline double ffmax(double a, double b) {
     return a >= b ? a : b;
 }
 
+inline double clamp(double x, double min, double max) {
+    if (x < min) {
+        return min;
+    }
+
+    if (x > max) {
+        return max;
+    }
+
+    return x;
+}
+
 // Begin Vector
 
 class vec3 {
@@ -94,6 +106,19 @@ class vec3 {
             out << static_cast<int>(255.99 * e[0]) << " "
             << static_cast<int>(255.99 * e[1]) << " "
             << static_cast<int>(255.99 * e[2]) << "\n";
+        }
+
+        void write_color(std::ostream& out, int samples_per_pixel) {
+            // Divide the color by the total number of samples
+            auto scale = 1.0 / samples_per_pixel;
+            auto r = scale * e[0];
+            auto g = scale * e[1];
+            auto b = scale * e[2];
+
+            // Write the translated [0, 255] value of each color component
+            out << static_cast<int>(256 * clamp(r, 0.0, 0.999)) << " "
+                << static_cast<int>(256 * clamp(g, 0.0, 0.999)) << " "
+                << static_cast<int>(256 * clamp(b, 0.0, 0.999)) << "\n";
         }
 
     public:
@@ -350,8 +375,9 @@ vec3 ray_color(const ray& r, const hittable& world) {
 }
 
 int main() {
-    const int image_width = 2000;
-    const int image_height = 1000;
+    const int image_width = 200;
+    const int image_height = 100;
+    const int samples_per_pixel = 100;
 
     std::cout << "P3\n" << image_width << " " << image_height << "\n255\n";
 
@@ -364,16 +390,21 @@ int main() {
     world.add(make_shared<sphere>(vec3(0, 0, -1), 0.5));
     world.add(make_shared<sphere>(vec3(0, -100.5, -1), 100));
 
+    camera cam;
+
     std::cerr << "Scanlines remaining: ";
 
     for (int j = image_height - 1; j >= 0; --j) {
         std::cerr << j << " " << std::flush;
         for (int i = 0; i < image_width; ++i) {
-            auto u = double(i) / image_width;
-            auto v = double(j) / image_height;
-            ray r(origin, lower_left_corner + u*horizontal + v*vertical);
-            vec3 color = ray_color(r, world);
-            color.write_color(std::cout);
+            vec3 color(0.0, 0.0, 0.0);
+            for (int s = 0; s < samples_per_pixel; ++s) {
+                auto u = (i + alt_random_double()) / image_width;
+                auto v = (j + alt_random_double()) / image_height;
+                ray r = cam.get_ray(u, v);
+                color += ray_color(r, world);
+            }
+            color.write_color(std::cout, samples_per_pixel);
         }
     }
 
