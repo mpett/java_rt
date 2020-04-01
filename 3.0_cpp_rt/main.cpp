@@ -44,6 +44,23 @@ inline double clamp(double x, double min, double max) {
     return x;
 }
 
+// Begin Random Double
+
+inline double random_double() {
+    return rand() / (RAND_MAX + 1.0);
+}
+
+inline double random_double(double min, double max) {
+    return min + (max - min) * random_double();
+}
+
+inline double alt_random_double() {
+    static std::uniform_real_distribution<double> distribution(0.0, 1.0);
+    static std::mt19937 generator;
+    static std::function<double()> rand_generator = std::bind(distribution, generator);
+    return rand_generator();
+}
+
 // Begin Vector
 
 class vec3 {
@@ -94,7 +111,7 @@ class vec3 {
             return *this *= 1 / t;
         }
 
-        double  length() const {
+        double length() const {
             return sqrt(length_squared());
         }
 
@@ -111,14 +128,22 @@ class vec3 {
         void write_color(std::ostream& out, int samples_per_pixel) {
             // Divide the color by the total number of samples
             auto scale = 1.0 / samples_per_pixel;
-            auto r = scale * e[0];
-            auto g = scale * e[1];
-            auto b = scale * e[2];
+            auto r = sqrt(scale * e[0]);
+            auto g = sqrt(scale * e[1]);
+            auto b = sqrt(scale * e[2]);
 
             // Write the translated [0, 255] value of each color component
             out << static_cast<int>(256 * clamp(r, 0.0, 0.999)) << " "
                 << static_cast<int>(256 * clamp(g, 0.0, 0.999)) << " "
                 << static_cast<int>(256 * clamp(b, 0.0, 0.999)) << "\n";
+        }
+
+        inline static vec3 random() {
+            return vec3(random_double(), random_double(), random_double());
+        }
+
+        inline static vec3 random(double min, double max) {
+            return vec3(random_double(min, max), random_double(min, max), random_double(min, max));
         }
 
     public:
@@ -167,21 +192,35 @@ inline vec3 unit_vector(vec3 v) {
     return v / v.length();
 }
 
-// Begin Random Double
-
-inline double random_double() {
-    return rand() / (RAND_MAX + 1.0);
+vec3 random_in_unit_sphere() {
+    while (true) {
+        auto p = vec3::random(-1, 1);
+        if (p.length_squared() >= 1) {
+            continue;
+        }
+        return p;
+    }
 }
 
-inline double random_double(double min, double max) {
-    return min + (max - min) * random_double();
+vec3 random_unit_vector() {
+    auto a = random_double(0, 2*pi);
+    auto z = random_double(-1, 1);
+    auto r = sqrt(1 - z*z);
+    return vec3(r*cos(a), r*sin(a), z);
 }
 
-inline double alt_random_double() {
-    static std::uniform_real_distribution<double> distribution(0.0, 1.0);
-    static std::mt19937 generator;
-    static std::function<double()> rand_generator = std::bind(distribution, generator);
-    return rand_generator();
+vec3 random_in_hemisphere(const vec3& normal) {
+    vec3 in_unit_sphere = random_in_unit_sphere();
+
+    if (dot(in_unit_sphere, normal) > 0.0) {
+        return in_unit_sphere;
+    } else {
+        return -in_unit_sphere;
+    }
+}
+
+vec3 reflect(const vec3& v, const vec3& n) {
+    return v - 2*dot(v, n) * n;
 }
 
 // Begin Ray
@@ -234,9 +273,12 @@ class camera {
 
 // Begin Hittable
 
+class material;
+
 struct hit_record {
     vec3 p;
     vec3 normal;
+    shared_ptr<material> mat_ptr;
     double t;
     bool front_face;
 
@@ -256,13 +298,14 @@ class hittable {
 class sphere : public hittable {
     public:
         sphere() {}
-        sphere(vec3 cen, double r) : center(cen), radius(r) {};
+        sphere(vec3 cen, double r, shared_ptr<material> m) : center(cen), radius(r), mat_ptr(m) {};
 
         virtual bool hit(const ray& r, double tmin, double tmax, hit_record& rec) const;
     
     public:
         vec3 center;
         double radius;
+        shared_ptr<material> mat_ptr;
 };
 
 bool sphere::hit(const ray& r, double t_min, double t_max, hit_record& rec) const {
@@ -281,6 +324,7 @@ bool sphere::hit(const ray& r, double t_min, double t_max, hit_record& rec) cons
             rec.p = r.at(rec.t);
             vec3 outward_normal = (rec.p - center) / radius;
             rec.set_face_normal(r, outward_normal);
+            rec.mat_ptr = mat_ptr;
             return true;
         }
 
@@ -291,6 +335,7 @@ bool sphere::hit(const ray& r, double t_min, double t_max, hit_record& rec) cons
             rec.p = r.at(rec.t);
             vec3 outward_normal = (rec.p - center) / radius;
             rec.set_face_normal(r, outward_normal);
+            rec.mat_ptr = mat_ptr;
             return true;
         }
     }
@@ -333,6 +378,54 @@ bool hittable_list::hit(const ray& r, double t_min, double t_max, hit_record& re
     return hit_anything;
 }
 
+// Material
+
+class material {
+    public:
+        virtual bool scatter(
+            const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered
+        ) const = 0;
+};
+
+// Lambertian
+
+class lambertian : public material {
+    public:
+        lambertian(const vec3& a) : albedo(a) {}
+
+        virtual bool scatter(
+            const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered
+        ) const {
+            vec3 scatter_direction = rec.normal + random_unit_vector();
+            scattered = ray(rec.p, scatter_direction);
+            attenuation = albedo;
+            return true;
+        }
+
+    public:
+        vec3 albedo;
+};
+
+// Metal
+
+class metal : public material {
+    public:
+        metal(const vec3& a, double f) : albedo(a), fuzz(f < 1 ? f : 1) {}
+
+        virtual bool scatter(
+            const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered
+        ) const {
+            vec3 reflected = reflect(unit_vector(r_in.direction()), rec.normal);
+            scattered = ray(rec.p, reflected + fuzz * random_in_unit_sphere());
+            attenuation = albedo;
+            return (dot(scattered.direction(), rec.normal) > 0);
+        }
+    
+    public:     
+        vec3 albedo;
+        double fuzz;
+};
+
 // Begin Main
 
 double hit_sphere(const vec3& center, double radius, const ray& r) {
@@ -349,24 +442,20 @@ double hit_sphere(const vec3& center, double radius, const ray& r) {
     }
 }
 
-vec3 ray_color(const ray& r) {
-    auto t = hit_sphere(vec3(0, 0, -1), 0.5, r);
-
-    if (t > 0.0) {
-        vec3 N = unit_vector(r.at(t) - vec3(0, 0, -1));
-        return 0.5 * vec3(N.x() + 1, N.y() + 1, N.z() + 1);
-    }
-
-    vec3 unit_direction = unit_vector(r.direction());
-    t = 0.5 * (unit_direction.y() + 1.0);
-    return (1.0 - t) * vec3(1.0, 1.0, 1.0) + t * vec3(0.5, 0.7, 1.0);
-}
-
-vec3 ray_color(const ray& r, const hittable& world) {
+vec3 ray_color(const ray& r, const hittable& world, int depth) {
     hit_record rec;
 
-    if (world.hit(r, 0, infinity, rec)) {
-        return 0.5 * (rec.normal + vec3(1, 1, 1));
+    if (depth <= 1) {
+        return vec3(0, 0, 0);
+    }
+
+    if (world.hit(r, 0.001, infinity, rec)) {
+        ray scattered;
+        vec3 attenuation;
+        if (rec.mat_ptr -> scatter(r, rec, attenuation, scattered)) {
+            return attenuation * ray_color(scattered, world, depth-1);
+        }
+        return vec3(0.0, 0.0, 0.0);
     }
 
     vec3 unit_direction = unit_vector(r.direction());
@@ -375,34 +464,30 @@ vec3 ray_color(const ray& r, const hittable& world) {
 }
 
 int main() {
-    const int image_width = 200;
-    const int image_height = 100;
+    const int image_width = 2000;
+    const int image_height = 1000;
     const int samples_per_pixel = 100;
+    int max_depth = 50;
 
     std::cout << "P3\n" << image_width << " " << image_height << "\n255\n";
 
-    vec3 lower_left_corner(-2.0, -1.0, -1.0);
-    vec3 horizontal(4.0, 0.0, 0.0);
-    vec3 vertical(0.0, 2.0, 0.0);
-    vec3 origin(0.0, 0.0, 0.0);
-
     hittable_list world;
-    world.add(make_shared<sphere>(vec3(0, 0, -1), 0.5));
-    world.add(make_shared<sphere>(vec3(0, -100.5, -1), 100));
+    world.add(make_shared<sphere>(vec3(0.0, 0.0, -1.0), 0.5, make_shared<lambertian>(vec3(0.7, 0.3, 0.3))));
+    world.add(make_shared<sphere>(vec3(0.0, -100.5, -1.0), 100, make_shared<lambertian> (vec3(0.8, 0.8, 0.0))));
+    world.add(make_shared<sphere>(vec3(1.0, 0.0, -1.0), 0.5, make_shared<metal> (vec3(0.8, 0.6, 0.2), 0.3)));
+    world.add(make_shared<sphere>(vec3(-1.0, 0.0, -1.0), 0.5, make_shared<metal> (vec3(0.8, 0.8, 0.8), 0.1)));
 
     camera cam;
 
-    std::cerr << "Scanlines remaining: ";
-
     for (int j = image_height - 1; j >= 0; --j) {
-        std::cerr << j << " " << std::flush;
+        std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
         for (int i = 0; i < image_width; ++i) {
             vec3 color(0.0, 0.0, 0.0);
             for (int s = 0; s < samples_per_pixel; ++s) {
                 auto u = (i + alt_random_double()) / image_width;
                 auto v = (j + alt_random_double()) / image_height;
                 ray r = cam.get_ray(u, v);
-                color += ray_color(r, world);
+                color += ray_color(r, world, max_depth);
             }
             color.write_color(std::cout, samples_per_pixel);
         }
