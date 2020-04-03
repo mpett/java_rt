@@ -267,6 +267,18 @@ class camera {
             origin = vec3(0.0, 0.0, 0.0);
         }
 
+        camera(double vfov, double aspect) {
+            origin = vec3(0, 0, 0);
+            
+            auto theta = degrees_to_radians(vfov);
+            auto half_height = tan(theta/2);
+            auto half_width = aspect * half_height;
+
+            lower_left_corner = vec3(-half_width, -half_height, -1.0);
+            horizontal = vec3(2*half_width, 0.0, 0.0);
+            vertical = vec3(0.0, 2*half_height, 0.0);
+        }
+
         ray get_ray(double u, double v) {
             return ray(origin, lower_left_corner + u*horizontal + v*vertical - origin);
         }
@@ -464,6 +476,7 @@ class dielectric : public material {
             if (random_double() < reflect_prob) {
                 vec3 reflected = reflect(unit_direction, rec.normal);
                 scattered = ray(rec.p, reflected);
+                return true;
             }
 
             vec3 refracted = refract(unit_direction, rec.normal, etai_over_etat);
@@ -513,8 +526,8 @@ vec3 ray_color(const ray& r, const hittable& world, int depth) {
 }
 
 int main() {
-    const int image_width = 2000;
-    const int image_height = 1000;
+    const int image_width = 200;
+    const int image_height = 100;
     const int samples_per_pixel = 100;
     int max_depth = 50;
 
