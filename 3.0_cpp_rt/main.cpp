@@ -57,7 +57,8 @@ inline double random_double(double min, double max) {
 inline double alt_random_double() {
     static std::uniform_real_distribution<double> distribution(0.0, 1.0);
     static std::mt19937 generator;
-    static std::function<double()> rand_generator = std::bind(distribution, generator);
+    static std::function<double()> rand_generator = 
+                        std::bind(distribution, generator);
     return rand_generator();
 }
 
@@ -143,7 +144,9 @@ class vec3 {
         }
 
         inline static vec3 random(double min, double max) {
-            return vec3(random_double(min, max), random_double(min, max), random_double(min, max));
+            return vec3(random_double(min, max), 
+                        random_double(min, max), 
+                        random_double(min, max));
         }
 
     public:
@@ -236,7 +239,8 @@ class ray {
     public:
         ray() {}
 
-        ray(const vec3& origin, const vec3& direction) : orig(origin), dir(direction) {}
+        ray(const vec3& origin, const vec3& direction) : 
+                                orig(origin), dir(direction) {}
 
         vec3 origin() const {
             return orig;
@@ -309,7 +313,8 @@ struct hit_record {
 
 class hittable {
     public:
-        virtual bool hit(const ray& r, double t_min, double t_max, hit_record& rec) const = 0;
+        virtual bool hit(const ray& r, double t_min, 
+                        double t_max, hit_record& rec) const = 0;
 };
 
 // Begin Sphere
@@ -317,7 +322,8 @@ class hittable {
 class sphere : public hittable {
     public:
         sphere() {}
-        sphere(vec3 cen, double r, shared_ptr<material> m) : center(cen), radius(r), mat_ptr(m) {};
+        sphere(vec3 cen, double r, shared_ptr<material> m) : 
+                            center(cen), radius(r), mat_ptr(m) {};
 
         virtual bool hit(const ray& r, double tmin, double tmax, hit_record& rec) const;
     
@@ -534,11 +540,17 @@ int main() {
     std::cout << "P3\n" << image_width << " " << image_height << "\n255\n";
 
     hittable_list world;
-    world.add(make_shared<sphere>(vec3(0.0, 0.0, -1.0), 0.5, make_shared<lambertian>(vec3(0.1, 0.2, 0.5))));
-    world.add(make_shared<sphere>(vec3(0.0, -100.5, -1.0), 100, make_shared<lambertian> (vec3(0.8, 0.8, 0.0))));
-    world.add(make_shared<sphere>(vec3(1.0, 0.0, -1.0), 0.5, make_shared<metal> (vec3(0.8, 0.6, 0.2), 0.3)));
-    world.add(make_shared<sphere>(vec3(-1.0, 0.0, -1.0), 0.5, make_shared<dielectric>(1.5)));
-    world.add(make_shared<sphere>(vec3(-1.0, 0.0, -1.0), -0.45, make_shared<dielectric>(1.5)));
+    
+    world.add(make_shared<sphere>(vec3(0.0, 0.0, -1.0), 0.5,
+        make_shared<lambertian>(vec3(0.1, 0.2, 0.5))));
+    world.add(make_shared<sphere>(vec3(0.0, -100.5, -1.0), 100, 
+        make_shared<lambertian> (vec3(0.8, 0.8, 0.0))));
+    world.add(make_shared<sphere>(vec3(1.0, 0.0, -1.0), 0.5, 
+        make_shared<metal> (vec3(0.8, 0.6, 0.2), 0.3)));
+    world.add(make_shared<sphere>(vec3(-1.0, 0.0, -1.0), 0.5, 
+        make_shared<dielectric>(1.5)));
+    world.add(make_shared<sphere>(vec3(-1.0, 0.0, -1.0), -0.45, 
+        make_shared<dielectric>(1.5)));
 
     camera cam;
 
