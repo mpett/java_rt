@@ -271,16 +271,22 @@ class camera {
             origin = vec3(0.0, 0.0, 0.0);
         }
 
-        camera(double vfov, double aspect) {
-            origin = vec3(0, 0, 0);
+        camera(vec3 lookfrom, vec3 lookat, vec3 vup, double vfov, double aspect) {
+            origin = lookfrom;
+            vec3 u, v, w;
             
             auto theta = degrees_to_radians(vfov);
             auto half_height = tan(theta/2);
             auto half_width = aspect * half_height;
 
-            lower_left_corner = vec3(-half_width, -half_height, -1.0);
-            horizontal = vec3(2*half_width, 0.0, 0.0);
-            vertical = vec3(0.0, 2*half_height, 0.0);
+            w = unit_vector(lookfrom - lookat);
+            u = unit_vector(cross(vup, w));
+            v = cross(w, u);
+
+            lower_left_corner = origin - half_width * u - half_height * v - w;
+
+            horizontal = 2 * half_width * u;
+            vertical = 2 * half_height * v;
         }
 
         ray get_ray(double u, double v) {
@@ -532,8 +538,8 @@ vec3 ray_color(const ray& r, const hittable& world, int depth) {
 }
 
 int main() {
-    const int image_width = 200;
-    const int image_height = 100;
+    const int image_width = 2000;
+    const int image_height = 1000;
     const int samples_per_pixel = 100;
     int max_depth = 50;
 
@@ -552,7 +558,9 @@ int main() {
     world.add(make_shared<sphere>(vec3(-1.0, 0.0, -1.0), -0.45, 
         make_shared<dielectric>(1.5)));
 
-    camera cam;
+    const auto aspect_ratio = double(image_width) / image_height;
+
+    camera cam(vec3(-2, 2, 1), vec3(0, 0, -1), vec3(0, 1, 0), 90, aspect_ratio);
 
     for (int j = image_height - 1; j >= 0; --j) {
         std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
