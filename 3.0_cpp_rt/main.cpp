@@ -175,6 +175,10 @@ inline vec3 operator*(double t, const vec3& v) {
     return vec3(t*v.e[0], t*v.e[1], t*v.e[2]);
 } 
 
+inline vec3 operator*(const vec3& v, double t) {
+    return t * v;
+}
+
 inline vec3 operator/(vec3 v, double t) {
     return (1 / t) * v;
 }
@@ -281,9 +285,11 @@ class camera {
             origin = vec3(0.0, 0.0, 0.0);
         }
 
-        camera(vec3 lookfrom, vec3 lookat, vec3 vup, double vfov, double aspect) {
+        camera(vec3 lookfrom, vec3 lookat, vec3 vup, 
+                            double vfov, double aspect, 
+                            double aperture, double focus_dist) {
             origin = lookfrom;
-            vec3 u, v, w;
+            lens_radius = aperture / 2;
             
             auto theta = degrees_to_radians(vfov);
             auto half_height = tan(theta/2);
@@ -293,14 +299,21 @@ class camera {
             u = unit_vector(cross(vup, w));
             v = cross(w, u);
 
-            lower_left_corner = origin - half_width * u - half_height * v - w;
+            lower_left_corner = origin - half_width * focus_dist * u
+                                - half_height * focus_dist * v
+                                - focus_dist * w;
 
-            horizontal = 2 * half_width * u;
-            vertical = 2 * half_height * v;
+            horizontal = 2 * half_width * focus_dist * u;
+            vertical = 2 * half_height * focus_dist * v;
         }
 
-        ray get_ray(double u, double v) {
-            return ray(origin, lower_left_corner + u*horizontal + v*vertical - origin);
+        ray get_ray(double s, double t) {
+            vec3 rd = lens_radius * random_in_unit_disk();
+            vec3 offset = u * rd.x() + v * rd.y();
+            
+            return ray(origin + offset, 
+                        lower_left_corner + s * horizontal 
+                                + t * vertical - origin - offset);
         }
 
     public:
@@ -308,6 +321,8 @@ class camera {
         vec3 lower_left_corner;
         vec3 horizontal;
         vec3 vertical;
+        vec3 u, v, w;
+        double lens_radius;
 };
 
 // Begin Hittable
@@ -547,6 +562,67 @@ vec3 ray_color(const ray& r, const hittable& world, int depth) {
     return (1.0 - t) * vec3(1.0, 1.0, 1.0) + t * vec3(0.5, 0.7, 1.0);
 }
 
+hittable_list random_scene() {
+    hittable_list world;
+
+    world.add(make_shared<sphere>(
+        vec3(0, -1000, 0), 1000, make_shared<lambertian>(vec3(0.5, 0.5, 0.5))
+    ));
+
+    int i = 1;
+
+    for (int a = -11; a < 11; a++) {
+        for (int b = -11; b < 11; b++) {
+            auto choose_mat = random_double();
+            vec3 center(a + 0.9 * random_double(), 0.2, b + 0.9 * random_double());
+
+            if ((center - vec3(4, 0.2, 0)).length() > 0.9) {
+                if (choose_mat < 0.8) {
+                    // diffuse
+                    auto albedo = vec3::random() * vec3::random();
+                    world.add(
+                        make_shared<sphere>(
+                            center, 0.2, make_shared<lambertian>(albedo)
+                        )
+                    );
+                } else if (choose_mat < 0.95) {
+                    // metal
+                    auto albedo = vec3::random(0.5, 1);
+                    auto fuzz = random_double(0, 0.5);
+                    world.add(
+                        make_shared<sphere>(center, 0.2, make_shared<metal>(albedo, fuzz))
+                    );
+                } else {
+                    // glass
+                    world.add(make_shared<sphere>(
+                        center, 0.2, make_shared<dielectric>(1.5)
+                    ));
+                }
+            }
+        }
+    }
+
+    world.add(
+        make_shared<sphere>(
+            vec3(0, 1, 0), 1.0, make_shared<dielectric>(1.5)
+        )
+    );
+
+    world.add(
+        make_shared<sphere>(
+            vec3(-4, 1, 0), 1.0, make_shared<lambertian>(vec3(0.4, 0.2, 0.1))
+        )
+    );
+
+    world.add(
+        make_shared<sphere>(
+            vec3(4, 1, 0), 1.0, make_shared<metal>(vec3(0.7, 0.6, 0.5), 0.0)
+        )
+    );
+
+    return world;
+}
+
 int main() {
     const int image_width = 2000;
     const int image_height = 1000;
@@ -555,22 +631,16 @@ int main() {
 
     std::cout << "P3\n" << image_width << " " << image_height << "\n255\n";
 
-    hittable_list world;
-    
-    world.add(make_shared<sphere>(vec3(0.0, 0.0, -1.0), 0.5,
-        make_shared<lambertian>(vec3(0.1, 0.2, 0.5))));
-    world.add(make_shared<sphere>(vec3(0.0, -100.5, -1.0), 100, 
-        make_shared<lambertian> (vec3(0.8, 0.8, 0.0))));
-    world.add(make_shared<sphere>(vec3(1.0, 0.0, -1.0), 0.5, 
-        make_shared<metal> (vec3(0.8, 0.6, 0.2), 0.3)));
-    world.add(make_shared<sphere>(vec3(-1.0, 0.0, -1.0), 0.5, 
-        make_shared<dielectric>(1.5)));
-    world.add(make_shared<sphere>(vec3(-1.0, 0.0, -1.0), -0.45, 
-        make_shared<dielectric>(1.5)));
+    auto world = random_scene();
 
     const auto aspect_ratio = double(image_width) / image_height;
+    vec3 lookfrom(13, 2, 3);
+    vec3 lookat(0, 0, 0);
+    vec3 vup(0, 1, 0);
+    auto dist_to_focus = 10;
+    auto aperture = 0.1;
 
-    camera cam(vec3(-2, 2, 1), vec3(0, 0, -1), vec3(0, 1, 0), 90, aspect_ratio);
+    camera cam(lookfrom, lookat, vup, 20, aspect_ratio, aperture, dist_to_focus);
 
     for (int j = image_height - 1; j >= 0; --j) {
         std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
